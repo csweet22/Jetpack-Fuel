@@ -768,7 +768,6 @@ tile_data = PoolIntArray( -262123, 5, 65538, -262122, 5, 65538, -262121, 5, 6553
 
 [node name="Player" parent="." instance=ExtResource( 2 )]
 position = Vector2( 0, -12 )
-camera = NodePath("../Camera")
 
 [node name="Camera" parent="." instance=ExtResource( 3 )]
 current = true

@@ -24,6 +24,10 @@ colors = PoolColorArray( 0.85098, 0.85098, 0.85098, 0.807843, 0.501961, 0.501961
 atlas = ExtResource( 2 )
 region = Rect2( 80, 112, 8, 8 )
 
+[sub_resource type="AtlasTexture" id=10]
+atlas = ExtResource( 2 )
+region = Rect2( 80, 120, 8, 8 )
+
 [sub_resource type="AtlasTexture" id=6]
 atlas = ExtResource( 2 )
 region = Rect2( 88, 112, 8, 8 )
@@ -36,10 +40,6 @@ region = Rect2( 80, 112, 8, 8 )
 atlas = ExtResource( 2 )
 region = Rect2( 96, 112, 8, 8 )
 
-[sub_resource type="AtlasTexture" id=10]
-atlas = ExtResource( 2 )
-region = Rect2( 80, 120, 8, 8 )
-
 [sub_resource type="SpriteFrames" id=11]
 animations = [ {
 "frames": [ SubResource( 9 ) ],
@@ -47,15 +47,15 @@ animations = [ {
 "name": "Idle",
 "speed": 5.0
 }, {
+"frames": [ SubResource( 10 ) ],
+"loop": true,
+"name": "Jump",
+"speed": 5.0
+}, {
 "frames": [ SubResource( 6 ), SubResource( 7 ), SubResource( 8 ), SubResource( 7 ) ],
 "loop": true,
 "name": "Run",
 "speed": 15.0
-}, {
-"frames": [ SubResource( 10 ) ],
-"loop": true,
-"name": "jump",
-"speed": 5.0
 } ]
 
 [sub_resource type="Curve" id=12]
