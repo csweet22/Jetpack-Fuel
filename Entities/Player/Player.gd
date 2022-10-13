@@ -2,9 +2,14 @@ extends Character
 
 class_name Player
 
-onready var jump_particles = $JumpParticles
+onready var jump_vfx = $JumpParticles
 onready var jump_sfx = $Audiostreams/JumpStream
+
 onready var jetpack_vfx = $JetpackVFX/JetpackParticles
+onready var jetpack_burst_sfx = $Audiostreams/JetStream
+onready var jetpack_hover_sfx = $Audiostreams/HoverStream
+
+onready var player_sprite = $AnimatedSprite
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -18,6 +23,7 @@ func _physics_process(delta):
 	handle_jetpack_logic()
 	ground_pound()
 	move_and_slide(move_vec,Vector2.UP)
+	
 
 func handle_input():
 	if Input.is_action_just_pressed("reset"):
@@ -43,11 +49,11 @@ func movement(delta):
 		else:
 			move_vec.x = MAX_SPEED_X * Input.get_action_strength("controller_right")
 		dir_facing = 1
-		$AnimatedSprite.flip_h = false
-		$AnimatedSprite.position.x = -2
+		player_sprite.flip_h = false
+		player_sprite.position.x = -2
 		if is_on_floor():
 			$RunParticles.emitting = true
-			$AnimatedSprite.animation = "Run"
+			player_sprite.animation = "Run"
 			
 	elif Input.is_action_pressed("move_left")  or Input.get_action_strength("controller_left") > 0.1:
 		if Input.get_action_strength("controller_left") < 0.1:
@@ -56,17 +62,17 @@ func movement(delta):
 			move_vec.x = -MAX_SPEED_X * Input.get_action_strength("controller_left")
 			
 		dir_facing = -1
-		$AnimatedSprite.flip_h = true
-		$AnimatedSprite.position.x = 0
+		player_sprite.flip_h = true
+		player_sprite.position.x = 0
 		if is_on_floor():
 			$RunParticles.emitting = true
-			$AnimatedSprite.animation = "Run"
+			player_sprite.animation = "Run"
 	else:
 		
 		$RunParticles.emitting = false
 		
 		if is_on_floor():
-			$AnimatedSprite.animation = "Idle"
+			player_sprite.animation = "Idle"
 	
 	if not is_on_floor():
 		$RunParticles.emitting = false
@@ -90,16 +96,16 @@ func movement(delta):
 
 func jump():
 	if can_jump:
+		player_sprite.animation = "Jump"
 		move_vec.y = -JUMP_FORCE
-		$AnimatedSprite.animation = "jump"
 		
 		if is_on_floor() or jump_ray.is_colliding():
-			jump_particles.restart()
+			jump_vfx.restart()
 			jump_sfx.play()
 		else:
 			# $JetpackParticles1.restart()
 			# $JetpackParticles2.restart()
-			$Audiostreams/JetStream.play()
+			jetpack_burst_sfx.play()
 		can_jump = false
 
 func handle_jump_logic():
@@ -147,17 +153,17 @@ func handle_jetpack_logic():
 			can_jump = false
 			move_vec.y -= 12
 			is_jetpacking = true
-			$AnimatedSprite.animation = "jump"
+			player_sprite.animation = "Jump"
 
 			jetpack_vfx.emitting = true
-			if $Audiostreams/HoverStream.playing == false:
-				$Audiostreams/HoverStream.play()
+			if jetpack_hover_sfx.playing == false:
+				jetpack_hover_sfx.play()
 		else:
-			$Audiostreams/HoverStream.stop()
+			jetpack_hover_sfx.stop()
 			is_jetpacking = false
 			jetpack_vfx.emitting = false
 	else:
 		jetpack_vfx.emitting = false
-		$Audiostreams/HoverStream.stop()
+		jetpack_hover_sfx.stop()
 		is_jetpacking = false
 
