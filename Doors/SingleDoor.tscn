@@ -1,0 +1,44 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://Doors/Door.gd" type="Script" id=2]
+[ext_resource path="res://Art/TilesetTest.png" type="Texture" id=3]
+[ext_resource path="res://Audio/DoorSmashClose (1).wav" type="AudioStream" id=4]
+[ext_resource path="res://Audio/DoorSmashOpen.wav" type="AudioStream" id=5]
+
+[sub_resource type="RectangleShape2D" id=1]
+extents = Vector2( 3.99256, 12.0036 )
+
+[sub_resource type="RectangleShape2D" id=2]
+extents = Vector2( 18.6358, 12.2002 )
+
+[node name="Door" type="Node2D"]
+script = ExtResource( 2 )
+open_pos = Vector2( 0, -24 )
+
+[node name="object" type="KinematicBody2D" parent="."]
+collision_layer = 8
+
+[node name="Sprite2" type="Sprite" parent="object"]
+texture = ExtResource( 3 )
+region_enabled = true
+region_rect = Rect2( 112, 72, 8, 24 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="object"]
+position = Vector2( -0.055061, -0.1214 )
+shape = SubResource( 1 )
+
+[node name="Area2D" type="Area2D" parent="."]
+visible = false
+collision_layer = 8
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+position = Vector2( 0.11419, -1.04979 )
+shape = SubResource( 2 )
+
+[node name="Open" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource( 5 )
+
+[node name="Close" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource( 4 )
+[connection signal="body_entered" from="Area2D" to="." method="_on_Area2D_body_entered"]
+[connection signal="body_exited" from="Area2D" to="." method="_on_Area2D_body_exited"]
