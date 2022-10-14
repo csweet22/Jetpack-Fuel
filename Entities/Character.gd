@@ -15,15 +15,12 @@ var current_y := 0
 var move_vec := Vector2.ZERO
 
 const JUMP_FORCE := 200
-const JUMP_SPACE_BUFFER := 16
 var can_jump := false
-var jumping := false
-onready var jump_ray := $RayCast2D
 
 
 var is_jetpacking := false
-
-var ground_pounding := false
+var in_air := true
+var is_ground_pounding := false
 var POUND_SPEED := 600
 
 var GRAVITY := 8

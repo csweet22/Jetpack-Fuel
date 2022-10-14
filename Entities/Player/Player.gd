@@ -13,15 +13,21 @@ onready var player_sprite = $AnimatedSprite
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	jump_ray.set_cast_to(Vector2(0,JUMP_SPACE_BUFFER))
+	pass
 
+func _process(delta):
+	handle_input()
 
 func _physics_process(delta):
-	handle_jump_logic()
-	handle_input()
+
+	print(can_jump, move_vec)
+
+	apply_gravity()
+
+	check_on_floor()
+	check_on_ceiling()
+
 	movement(delta)
-	handle_jetpack_logic()
-	ground_pound()
 	move_and_slide(move_vec,Vector2.UP)
 	
 
@@ -29,16 +35,29 @@ func handle_input():
 	if Input.is_action_just_pressed("reset"):
 		get_tree().reload_current_scene()
 	
-	if Input.is_action_just_pressed("jump") and not ground_pounding and not is_jetpacking:
-		jump()
+	if Input.is_action_just_pressed("jump"):
+		start_jump()
 	
 	if Input.is_action_just_pressed("shoot"): 
 		shoot()
 	
 	if Input.is_action_just_pressed("pound"):
-		if not ground_pounding:
-			if not is_on_floor():
-				ground_pounding = true
+		start_ground_pound()
+	
+	if Input.is_action_pressed("jetpack"):
+		start_jetpack()
+	else:
+		turn_off_jetpack_effects()
+		
+func check_on_floor():
+	if is_on_floor():
+		end_jump()
+		end_ground_pound()
+		end_jetpack()
+
+func check_on_ceiling():
+	if is_on_ceiling():
+		move_vec.y = 1
 
 func movement(delta):
 	$RunParticles.direction.x = -dir_facing * 5
@@ -51,7 +70,7 @@ func movement(delta):
 		dir_facing = 1
 		player_sprite.flip_h = false
 		player_sprite.position.x = -2
-		if is_on_floor():
+		if is_on_floor() and not in_air:
 			$RunParticles.emitting = true
 			player_sprite.animation = "Run"
 			
@@ -64,14 +83,14 @@ func movement(delta):
 		dir_facing = -1
 		player_sprite.flip_h = true
 		player_sprite.position.x = 0
-		if is_on_floor():
+		if is_on_floor() and not in_air:
 			$RunParticles.emitting = true
 			player_sprite.animation = "Run"
 	else:
 		
 		$RunParticles.emitting = false
 		
-		if is_on_floor():
+		if is_on_floor() and not in_air:
 			player_sprite.animation = "Idle"
 	
 	if not is_on_floor():
@@ -94,38 +113,36 @@ func movement(delta):
 		else:
 			$Audiostreams/WalkStream.stop()
 
-func jump():
-	if can_jump:
-		player_sprite.animation = "Jump"
-		move_vec.y = -JUMP_FORCE
-		
-		if is_on_floor() or jump_ray.is_colliding():
-			jump_vfx.restart()
-			jump_sfx.play()
-		else:
-			# $JetpackParticles1.restart()
-			# $JetpackParticles2.restart()
-			jetpack_burst_sfx.play()
-		can_jump = false
+func start_jump():
+	if not is_ground_pounding and not is_jetpacking and can_jump:
+		jump()
 
-func handle_jump_logic():
+func jump():
+
+	in_air = true
+	can_jump = false
+
+	player_sprite.animation = "Jump"
+	move_vec.y = -JUMP_FORCE
+
 	if is_on_floor():
+		jump_vfx.restart()
+		jump_sfx.play()
+	else:
+		# $JetpackParticles1.restart()
+		# $JetpackParticles2.restart()
+		jetpack_burst_sfx.play()
+
+func end_jump():
+	if in_air and move_vec.y > 0:
 		can_jump = true
 		move_vec.y = 0
-		# $JetpackParticles1.emitting = false
-		# $JetpackParticles2.emitting = false
-	elif jump_ray.is_colliding():
-		if move_vec.y > 0:
-			can_jump = true
-	
+		in_air = false
+
+func apply_gravity():
 	if not is_on_floor():
 		if move_vec.y < MAX_GRAVITY_DOWN:
 			move_vec.y += GRAVITY
-	else:
-		move_vec.y = 50
-	
-	if is_on_ceiling():
-		move_vec.y = 1
 
 func shoot():
 	var bullet = Bullet.instance()
@@ -136,34 +153,44 @@ func shoot():
 	bullet.global_position.x += dir_facing * 3
 	$Audiostreams/ShootStream.play()
 
+func start_ground_pound():
+	if not is_ground_pounding and not is_on_floor():
+		is_ground_pounding = true
+		ground_pound()
+
 func ground_pound():
-	if ground_pounding and is_on_floor():
+	move_vec.y += POUND_SPEED
+
+func end_ground_pound():
+	if is_ground_pounding:
+		is_ground_pounding = false
 		$Audiostreams/PoundStream.play()
 		$JumpParticles.restart()
-	
-	if is_on_floor():
-		ground_pounding = false
-	
-	if ground_pounding:
-		move_vec.y = POUND_SPEED
 
-func handle_jetpack_logic():
+func start_jetpack():
 	if not is_on_floor():
-		if Input.is_action_pressed("jetpack"):
-			can_jump = false
-			move_vec.y -= 12
-			is_jetpacking = true
-			player_sprite.animation = "Jump"
+		jetpack_propel()
 
-			jetpack_vfx.emitting = true
-			if jetpack_hover_sfx.playing == false:
-				jetpack_hover_sfx.play()
-		else:
-			jetpack_hover_sfx.stop()
-			is_jetpacking = false
-			jetpack_vfx.emitting = false
-	else:
-		jetpack_vfx.emitting = false
-		jetpack_hover_sfx.stop()
+func jetpack_propel():
+
+	can_jump = false
+	in_air = true
+			
+	move_vec.y -= 12
+	is_jetpacking = true
+
+	player_sprite.animation = "Jump"
+
+	jetpack_vfx.emitting = true
+	if jetpack_hover_sfx.playing == false:
+		jetpack_hover_sfx.play()
+
+func turn_off_jetpack_effects():
+	jetpack_vfx.emitting = false
+	jetpack_hover_sfx.stop()
+
+func end_jetpack():
+	if is_jetpacking:
 		is_jetpacking = false
-
+		turn_off_jetpack_effects()
+		end_jump()
