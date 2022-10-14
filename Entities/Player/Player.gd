@@ -20,8 +20,6 @@ func _process(delta):
 
 func _physics_process(delta):
 
-	print(can_jump, move_vec)
-
 	apply_gravity()
 
 	check_on_floor()
